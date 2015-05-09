@@ -3,6 +3,16 @@ if (!document.title) {
     document.title = document.URL;
 }
 
+/* SSE */
+
+var _events = ["subtitle", "pushvod", "pdl", "player", "eit", "records", "cas", "prm", "network", "storage", "system", "scanning", "avio", "hls", "respawn", "open", "error"];
+var source = new window.EventSource('/stream');
+
+_events.forEach(function(_event) {
+    source.addEventListener(_event, function(e) {
+      console.log("[SSE] ["+_event+"] "+e.data);
+    }, false);
+});
 
 /* Keylib */
 // Alphanumeric
@@ -16,7 +26,12 @@ document.addEventListener('keypress', function (e) {
 
 // Other keys
 chrome.storage.sync.get({allKeys: false}, function(settings) {
-    if (settings.allKeys) {
+
+    document.addEventListener('keydown', function (e) {
+        log("[KEYDOWN] " + e.keyCode);
+    });
+
+/*    if (settings.allKeys) {
         document.addEventListener('keydown', function (e) {
             e = e || window.event;
             var charCode = typeof e.which == "number" ? e.which : e.keyCode;
@@ -53,6 +68,7 @@ chrome.storage.sync.get({allKeys: false}, function(settings) {
             }
         });
     }
+*/
 });
 
 
@@ -70,7 +86,7 @@ function log(input) {
     data[time] += input;
     shouldSave = true;
     lastLog = now;
-    console.log("Logged", input);
+    console.log("[LOG] ", input);
 }
 
 
