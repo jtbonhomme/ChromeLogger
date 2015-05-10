@@ -4,12 +4,14 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test":  "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
   },
   "author": "Jean-Thierry Bonhomme <jtbonhomme@gmail.com>",
   "license": "ISC",
   "dependencies": {
+    "colors": "~0.6.2",
     "express": "~3.3.3",
-    "colors": "~0.6.2"
+    "minimist": "^1.1.1"
   }
 }

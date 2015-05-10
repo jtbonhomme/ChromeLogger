@@ -3,24 +3,25 @@
 
     /* SSE listener */
     var _events = ["subtitle", "pushvod", "pdl", "player", "eit", "records", "cas", "prm", "network", "storage", "system", "scanning", "avio", "hls"/*, "respawn", "open", "error"*/];
-    var source = new window.EventSource('/stream');
-
+    var source = new window.EventSource('/stream'); // get the /stream route on the current page: webapp.local/stream for example
     _events.forEach(function(_event) {
         source.addEventListener(_event, function(e) {
           sseLog(_event, e.data);
       }, false);
     });
 
-    /* Keydown listener */
-    document.addEventListener('keydown', function (e) {
-        keyLog('KEYDOWN' , e.keyCode);
-    });
-
-    /* Keyup listener */
+    /* Keyboard listeners */
     document.addEventListener('keyup', function (e) {
-        keyLog('KEYUP' , e.keyCode);
+        keyLog('keyup' , e.keyCode);
+        console.log('keyup : ' + e.keyCode);
     });
 
+    /* local storage to get back configuration settings */
+    // get settings once 
+    chrome.storage.sync.get(null, function(settings) {
+        console.log("chrome.storage.sync.get : " + JSON.stringify(settings));
+    });
+    // and listen for updates
     chrome.storage.onChanged.addListener(function(changes, namespace) {
         for (var key in changes) {
           var storageChange = changes[key];
@@ -33,10 +34,6 @@
         }
     });
 
-    chrome.storage.sync.get(null, function(settings) {
-        console.log("chrome.storage.sync.get : " + JSON.stringify(settings));
-    });
-
     var global = {
       "LOGGER_NAME": "remote",
       "LOGGER_OPTIONS": {
@@ -46,13 +43,11 @@
 
     var _slice = Array.prototype.slice;
 
-
     function filter(args, namespace) {
       var f = global.LOGGER_FILTERS;
       if (f && f[namespace]) { return; }
       return _slice.call(args);
     }
-
 
     function REMOTE_LOGGER(options) {
         var flush    = [],

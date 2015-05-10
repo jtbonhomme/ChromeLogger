@@ -27,6 +27,9 @@ Open the webapp.local url in Chrome, and use the webapp. Logs will be saved in t
 * send keyname to server as defined in nightwatch
 * handle throttle for key press
 * create a nightwatch test file
+* give a name to a test with a text field
+* specify keywords for nightwatch test
 * start and finish test (then log recording) with a menu button
+* allow define steps in tests
 * send text label to split texts
 * send screenshot orders to check a test step
