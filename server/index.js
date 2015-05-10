@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 (function(){
   'use strict';
   require('colors');
@@ -38,8 +40,16 @@
     fatal:   'rainbow'
   };
 
+  /**
+   * Data received are under the form:
+   * [
+   *   {"namespace":"KEY","date":"2015-05-10T06:47:47.411Z","args":["KEYDOWN",38]},
+   *   {"namespace":"SSE","date":"2015-05-10T06:45:32.101Z","args":["player",{"data":{"307":1.0},"signal":"LastChange"}]},
+   * ]
+   */
+
   function logConsole(log) {
-    return ['[' + log.date.grey + ']', '[' + log.namespace[colors[log.level]] + ']', prettyprint(log.args)].join(' ');
+    return ['[' + log.date.grey + ']', '[' + log.namespace.red + ']', prettyprint(log.args)].join(' ');
   }
   function logFile(log) {
     return ['[' + log.date + ']', '[' + log.namespace + ']', prettyprint(log.args)].join(' ');

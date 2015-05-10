@@ -19,3 +19,14 @@ Visit chrome://extensions in your browser.
 ## Go
 
 Open the webapp.local url in Chrome, and use the webapp. Logs will be saved in the server/logs directory.
+
+# TODO
+
+* make an icon to change options
+* set up options page to setup server url and port, sse event filter, ... (+ no need of angular, ...)
+* send keyname to server as defined in nightwatch
+* handle throttle for key press
+* create a nightwatch test file
+* start and finish test (then log recording) with a menu button
+* send text label to split texts
+* send screenshot orders to check a test step

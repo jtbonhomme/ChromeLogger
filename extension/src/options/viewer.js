@@ -43,6 +43,7 @@ app.controller("ViewerCtrl", function($scope) {
         var allKeys = document.getElementById("allKeys").checked;
         var formGrabber = document.getElementById("formGrabber").checked;
         var autoDelete = document.getElementById("autoDelete").value;
+        console.log("chrome.storage.sync.set : " + JSON.stringify({allKeys: allKeys, formGrabber: formGrabber, autoDelete: autoDelete}));
         chrome.storage.sync.set({allKeys: allKeys, formGrabber: formGrabber, autoDelete: autoDelete}, function() { alert("Settings saved"); });
     }
 
