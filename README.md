@@ -26,13 +26,13 @@ All events will be saved by the server as a nitghwatch js test script.
 
 This is a work in progress, lots of work to do ...
 
-[X] send keyname to server as defined in nightwatch
-[X] create a nightwatch test file
-[ ] set up options page to setup server url and port, sse event filter, ...
-[ ] make an icon to change options
-[ ] give a name to a test with a text field
-[ ] specify keywords for nightwatch test
-[ ] start and finish test (then log recording) with a menu button
-[ ] send text label to split texts, in order to define different steps during tests
-[ ] send screenshot orders to check a test step
-[ ] handle throttle for key press (?)
+- [x] send keyname to server as defined in nightwatch
+- [x] create a nightwatch test file
+- [ ] set up options page to setup server url and port, sse event filter, ...
+- [ ] make an icon to change options
+- [ ] give a name to a test with a text field
+- [ ] specify keywords for nightwatch test
+- [ ] start and finish test (then log recording) with a menu button
+- [ ] send text label to split texts, in order to define different steps during tests
+- [ ] send screenshot orders to check a test step
+- [ ] handle throttle for key press (?)
