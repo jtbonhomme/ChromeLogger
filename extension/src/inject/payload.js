@@ -37,7 +37,8 @@
     var global = {
       "LOGGER_NAME": "remote",
       "LOGGER_OPTIONS": {
-        "url": "http://127.0.0.1:8081"
+        "url": "http://127.0.0.1:8081",
+        "batchInterval": 300
       }
     };
 

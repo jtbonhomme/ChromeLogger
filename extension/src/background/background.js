@@ -1,12 +1,16 @@
 (function(){
   'use strict';
 
+  /* set dimensions to 1280x720 */
+  /*chrome.windows.update(chrome.windows.WINDOW_ID_CURRENT, {left: 0, top: 0, width: 1280, height: 720}, function() {
+    console.log("[content] resized window");
+  });*/
 
   var screenshot = {
     tab: 0,
     canvas: document.createElement("canvas"),
     screenLog: LOGGER('SCR'),
-
+    domLog: LOGGER('DOM'),
     /**
     * Receive messages from content_script, and then decide what to do next
     */
@@ -16,15 +20,20 @@
         if(obj.msg === "screenshot") {
           chrome.tabs.captureVisibleTab(null, {format: 'png'}, function(dataUrl) {
             screenshot.screenLog(dataUrl);
-              cb({ resp: "[background] screenshot ok !", screenshotUrl: dataUrl });
+            alert("SCREENSHOT");
+            cb({ resp: "[background] screenshot ok !", screenshotUrl: dataUrl });
           });
+        }
+        else if(obj.msg === "dom") {
+          screenshot.domLog(obj.element);
+          alert("HOVER");
+          cb({ resp: "[background] XPATH selection " + obj.element.xpath, data: null});
         }
         else {
           cb({resp: "[background] unknown message "+obj.msg, data: null});
         }
       });
     },
-
     init: function() {
       screenshot.addMessageListener();
     }
@@ -35,7 +44,8 @@
   var global = {
     "LOGGER_NAME": "remote",
     "LOGGER_OPTIONS": {
-      "url": "http://127.0.0.1:8081"
+      "url": "http://127.0.0.1:8081",
+      "batchInterval": 300
     }
   };
 

@@ -50,7 +50,8 @@
    */
 
   function logConsole(log) {
-    return ['[' + log.date.grey + ']', '[' + log.namespace.red + ']', (log.namespace==='SCR'?'<screenshot>':prettyprint(log.args))].join(' ');
+    var args = (log.namespace==='SCR'?'<screenshot>':prettyprint(log.args));
+    return ['[' + log.date.grey + ']', '[' + log.namespace.red + ']', args].join(' ');
   }
 
   var keys = {
