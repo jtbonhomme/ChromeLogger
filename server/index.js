@@ -50,7 +50,7 @@
    */
 
   function logConsole(log) {
-    return ['[' + log.date.grey + ']', '[' + log.namespace.red + ']', prettyprint(log.args)].join(' ');
+    return ['[' + log.date.grey + ']', '[' + log.namespace.red + ']', (log.namespace==='SCR'?'<screenshot>':prettyprint(log.args))].join(' ');
   }
 
   var keys = {
@@ -105,6 +105,13 @@
         if(log.args[0] === 'keyup' && keys[log.args[1]]) {
           output.push('      .keys(', keys[log.args[1]],')');
         }
+        break;
+      case "SCR":
+        var base64Data = log.args[0].replace(/^data:image\/png;base64,/,""),
+            binaryData = new Buffer(base64Data, 'base64');
+        require("fs").writeFile("out.png", binaryData, "binary", function(err) {
+          console.log(err); // writes out file without error, but it's not a valid image
+        });
         break;
       default:
         break;

@@ -1,3 +1,4 @@
 node_modules
 server/scripts/*.js
 *.DS_Store*
+*.png

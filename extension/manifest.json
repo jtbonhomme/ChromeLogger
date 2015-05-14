@@ -17,6 +17,10 @@
   ],
   "permissions": [
     "<all_urls>",
+    "activeTab",
+    "contextMenus",
+    "desktopCapture",
+    "tabCapture",
     "tabs",
     "storage",
     "unlimitedStorage"
